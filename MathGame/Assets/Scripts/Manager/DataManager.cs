@@ -26,7 +26,7 @@ public class DefaultData
         this.data = data;
     }
 }
-
+[Serializable]
 public class StageData
 {
     // When stage select
@@ -98,6 +98,13 @@ public class DataManager : Singleton<DataManager>
         StageData
     }
 
+    public enum Operation
+    {
+        Plus,
+        Minus,
+        Multi
+    }
+
 #endregion
 
     public void SaveMstData() => JsonManager.Instance.SaveJsonData(MstData, Path.Combine(Application.persistentDataPath, "mstData.json"));
@@ -115,9 +122,19 @@ public class DataManager : Singleton<DataManager>
             MstData = new JsonData();
 
             var stageDatas = new List<StageData> {
-                // currencyID, currencyName, havingCount
-                new StageData("0", true, false, 0, 5, 0, 2, 3, -1), // -1 = tutorial stage
-                new StageData("1", false, false, 0, 3, 0, 2, 3, 3)
+                // StageID, IsUnlockedStage, IsClearedStage, ClearHeart, MaxNum, MaxOp, BlankNumCnt, EnemyLife, PlayerLife
+                //            id, unlock, clear,hp, Numlim, usingMaxOp, blankNum, enemyLife, playerLife
+                new StageData("0", true, false, 0, 3, (int)Operation.Plus, 2, 1, -1), // -1 = tutorial stage
+                new StageData("1", false, false, 0, 3, (int)Operation.Plus, 2, 3, 3),
+                new StageData("2", false, false, 0, 6, (int)Operation.Plus, 2, 3, 3),
+                new StageData("3", false, false, 0, 10, (int)Operation.Plus, 2, 5, 3),
+                new StageData("4", false, false, 0, 3, (int)Operation.Minus, 2, 5, 3),
+                new StageData("5", false, false, 0, 6, (int)Operation.Minus, 2, 7, 3),
+                new StageData("6", false, false, 0, 10, (int)Operation.Minus, 2, 7, 3),
+                new StageData("7", false, false, 0, 3, (int)Operation.Multi, 2, 9, 3),
+                new StageData("8", false, false, 0, 6, (int)Operation.Multi, 2, 10, 3),
+                new StageData("9", false, false, 0, 10, (int)Operation.Multi, 2, 12, 3),
+                new StageData("10", false, false, 0, 10, (int)Operation.Multi, 2, 15, 3),
             };
 
             MstData.Init(
@@ -141,4 +158,61 @@ public class DataManager : Singleton<DataManager>
         Debug.LogError($"Type Undefined: {type} is not defined in Default Data Types");
         return null;
     }
+
+    public StageData GetStageData(DataType type, string id)
+    {
+        // Find Data with id
+        if (type == DataType.StageData) { return GetMstData().stageDatas.Find((m) => m.id == id); }
+
+        // Else case
+        Debug.LogError($"Type Undefined: {type} is not defined in Default Data Types");
+        return null;
+    }
+    public void SetStageClearHp(int clearHp, string id)
+    {
+        clearHp = clearHp == -1 ? 3 : clearHp;
+        // Find Data with id
+        var data = GetStageData(DataType.StageData, id);
+        if(data == null)
+        {
+            Debug.LogError($"[DataManager] Stage Data Not Found. id={id}");
+            return;
+        }
+        data.isCleared = true;
+        data.clearedHeart = Math.Max(data.clearedHeart, clearHp);
+        SaveMstData();
+    }
+
+    public void SetStageUnlock(bool isUnlock, string id)
+    {
+        // Find Data with id
+        var data = GetStageData(DataType.StageData, id);
+        if (data == null)
+        {
+            Debug.LogError($"[DataManager] Stage Data Not Found. id={id}");
+            return;
+        }
+        data.isUnlocked = isUnlock;
+        SaveMstData();
+    }
+
+    public string GetNextStageId(string currentId)
+    {
+        var currentIndex = int.Parse(currentId);
+        var length = GetMstData().stageDatas.Count;
+        if(length <= currentIndex + 1)
+        {
+            // Last Stage
+            return "-1";
+        }
+        return $"{currentIndex + 1}";
+    }
+
+    public static string OpNumberToString(int op) => op switch
+    {
+        (int)Operation.Plus => "+",
+        (int)Operation.Minus => "-",
+        (int)Operation.Multi => "x",
+        _ => "Error",
+    };
 }

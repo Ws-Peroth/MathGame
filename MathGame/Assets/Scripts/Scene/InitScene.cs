@@ -7,12 +7,6 @@ public class InitScene : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        SceneManagerEx.Instance.LoadScene(SceneManagerEx.Scenes.Title);
     }
 }
