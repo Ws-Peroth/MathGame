@@ -39,6 +39,9 @@ public class GameScene : MonoBehaviour, IGlobalEventReceiver
 
     [SerializeField] private Image enemyImage;
     [SerializeField] private Image playerImage;
+    [SerializeField] private Image bgImage;
+    [SerializeField] private Image bushImage;
+    [SerializeField] private Image groundImage;
 
     readonly string[] EventIds = new string[]
     {
@@ -155,6 +158,17 @@ public class GameScene : MonoBehaviour, IGlobalEventReceiver
     // Start is called before the first frame update
     void Start()
     {
+        int stageNumber = int.Parse(GameManager.Instance.GetCurrentStageData().id);
+        int bgNumber = Mathf.Min(Mathf.Max(stageNumber / 3, 1), 3);
+        bgImage.sprite = AssetDownloadManager.Instance.GetAssetsWithPath<Sprite>($"bg{bgNumber}")[0];
+        bushImage.sprite = AssetDownloadManager.Instance.GetAssetsWithPath<Sprite>($"floor{bgNumber}")[0];
+        groundImage.sprite = AssetDownloadManager.Instance.GetAssetsWithPath<Sprite>($"floor{bgNumber}")[1];
+        enemyImage.sprite = AssetDownloadManager.Instance.GetAssetsWithPath<Sprite>($"boss{stageNumber}")[0];
+
+        Debug.Log($"bgImage=bg{Mathf.Max(Mathf.Min(stageNumber / 3, 1), 3)}");
+        
+        Debug.Log($"enemyImage=boss{stageNumber}");
+
         systemNotice.gameObject.SetActive(false);
         returnToStageButton.onClick.AddListener(() =>
         {
